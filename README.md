@@ -8,19 +8,17 @@ An intelligent customer service chatbot for British Airways using a multi-agent 
 
 ## Features
 
+- Multi-Agent Architecture: 4 specialized AI agents working together
 
+- Accurate Policy-Based Responses: Uses actual BA policy documents
 
-\*\Multi-Agent Architecture\*\: 4 specialized AI agents working together
+- Source Citations: Transparent answers with policy references
 
-\*\*Accurate Policy-Based Responses\*\*: Uses actual BA policy documents
+- Confidence Scores: Quality metrics for each response
 
-\*\*Source Citations\*\*: Transparent answers with policy references
+- Beautiful UI: Modern, responsive chat interface
 
-\*\*Confidence Scores\*\*: Quality metrics for each response
-
-\*\*Beautiful UI\*\*: Modern, responsive chat interface
-
-\*\*Fast Performance\*\*: Optimized with Llama3.2:1b model
+- Fast Performance: Optimized with Llama3.2:1b model
 
 
 
@@ -62,7 +60,7 @@ Response to User
 
 
 
-\*\*Backend:\*\*
+#### Backend:
 
 - FastAPI (Python web framework)
 
@@ -74,7 +72,7 @@ Response to User
 
 
 
-*\*Frontend:\*\*
+#### Frontend:
 
 - React + Vite
 
@@ -104,7 +102,7 @@ Response to User
 
 
 
-1. \*\*Clone the repository\*\*
+1. Clone the repository
 
 ```bash
 
@@ -116,7 +114,7 @@ cd ba-agentic-chatbot
 
 
 
-2. \*\*Install Ollama and pull the model\*\*
+2. Install Ollama and pull the model
 
 ```bash
 
@@ -128,7 +126,7 @@ ollama pull llama3.2:1b
 
 
 
-3. \*\*Setup Backend\*\*
+3. Setup Backend
 
 ```bash
 
@@ -158,7 +156,7 @@ python main.py
 
 
 
-4. \*\*Setup Frontend\*\* (in a new terminal)
+4. Setup Frontend (in a new terminal)
 
 ```bash
 
@@ -172,7 +170,7 @@ npm run dev
 
 
 
-5. \*\*Open browser\*\*
+5. Open browser
 
 ```
 
@@ -228,17 +226,17 @@ ba-agentic-chatbot/
 
 
 
-1\. \*\*User asks a question\*\* about BA policies
+1\. User asks a question about BA policies
 
-2. \*\*Planner Agent\*\* categorizes the query (liquids, baggage, medical, etc.)
+2. Planner Agent categorizes the query (liquids, baggage, medical, etc.)
 
-3. \*\*Retriever Agent\*\* searches 78 policy document sections using semantic search
+3. Retriever Agent searches 78 policy document sections using semantic search
 
-4. \*\*Reasoner Agent\*\* generates accurate response using retrieved context
+4. Reasoner Agent generates accurate response using retrieved context
 
-5. \*\*Evaluator Agent\*\* validates response and calculates confidence score
+5. Evaluator Agent validates response and calculates confidence score
 
-6. \*\*User receives\*\* accurate, policy-based answer with sources
+6. User receives accurate, policy-based answer with sources
 
 
 
@@ -318,13 +316,13 @@ ba-agentic-chatbot/
 
 
 
-- \*\*Faster Model\*\*: Using Llama3.2:1b instead of Llama3 (50-70% faster)
+- Faster Model: Using Llama3.2:1b instead of Llama3 (50-70% faster)
 
-- \*\*Temperature Control\*\*: Reduced repetition with temperature=0.7
+- Temperature Control: Reduced repetition with temperature=0.7
 
-- \*\*Repeat Penalty\*\*: Prevents redundant phrasing
+- Repeat Penalty: Prevents redundant phrasing
 
-- \*\*Efficient Embeddings\*\*: all-MiniLM-L6-v2 for fast semantic search
+- Efficient Embeddings: all-MiniLM-L6-v2 for fast semantic search
 
 
 
@@ -364,9 +362,9 @@ ba-agentic-chatbot/
 
 ## Team
 
-Tanvi Tiwari 
-Lavanya Singh 
-Angel Bhandari 
+1. Tanvi Tiwari 
+2. Lavanya Singh 
+3. Angel Bhandari 
 
 
 
@@ -379,5 +377,6 @@ Angel Bhandari
 \- ChromaDB for vector database
 
 \- FastAPI and React communities
+
 
 
