@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
 import os
+import uuid
 
 # Import agents
 from agents.planner import PlannerAgent
@@ -12,8 +13,9 @@ from agents.retriever import RetrieverAgent
 from agents.reasoner import ReasonerAgent
 from agents.evaluator import EvaluatorAgent
 from database.vector_store import VectorStore
+from database.memory import ConversationMemory
 
-app = FastAPI(title="BA Chatbot API - Agentic System", version="2.0.0")
+app = FastAPI(title="BA Chatbot API - Agentic System with Memory", version="2.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,7 +44,11 @@ retriever = RetrieverAgent(vector_store)
 reasoner = ReasonerAgent()
 evaluator = EvaluatorAgent()
 
+# Initialize conversation memory
+memory = ConversationMemory()
+
 print("✅ All agents initialized successfully!")
+print("🧠 Conversation memory enabled!")
 
 class ChatRequest(BaseModel):
     message: str
@@ -58,16 +64,26 @@ class ChatResponse(BaseModel):
 async def health_check():
     return {
         "status": "healthy",
-        "version": "2.0.0",
+        "version": "2.1.0",
+        "features": ["agents", "vector_store", "conversation_memory"],
         "agents": ["planner", "retriever", "reasoner", "evaluator"],
         "vector_store": "active" if vector_store.initialized else "inactive"
     }
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-    """Main chat endpoint with full agentic workflow"""
+    """Main chat endpoint with full agentic workflow and conversation memory"""
     try:
+        # Generate conversation ID if not provided
+        conversation_id = request.conversation_id or str(uuid.uuid4())
+        
         print(f"\n💬 New query: {request.message}")
+        print(f"🆔 Conversation ID: {conversation_id}")
+        
+        # Step 0: Get conversation history
+        conversation_context = memory.get_context_string(conversation_id)
+        if conversation_context:
+            print(f"🧠 Retrieved conversation history ({len(memory.get_history(conversation_id))} messages)")
         
         # Step 1: Planner Agent - Analyze query and create plan
         print("🧠 Planner: Analyzing query...")
@@ -82,12 +98,13 @@ async def chat(request: ChatRequest):
         )
         print(f"   → Found {len(retrieved_docs)} relevant documents")
         
-        # Step 3: Reasoner Agent - Generate response
-        print("💡 Reasoner: Generating response...")
+        # Step 3: Reasoner Agent - Generate response with conversation context
+        print("💡 Reasoner: Generating response with conversation context...")
         response = await reasoner.generate_response(
             query=request.message,
             context=retrieved_docs,
-            plan=plan
+            plan=plan,
+            conversation_context=conversation_context
         )
         
         # Step 4: Evaluator Agent - Validate and score
@@ -99,9 +116,14 @@ async def chat(request: ChatRequest):
         )
         print(f"   → Confidence: {evaluation['confidence']:.2f}")
         
+        # Step 5: Save to conversation memory
+        memory.add_message(conversation_id, "user", request.message)
+        memory.add_message(conversation_id, "assistant", evaluation["response"])
+        print(f"💾 Saved to conversation memory")
+        
         return ChatResponse(
             response=evaluation["response"],
-            conversation_id=request.conversation_id or "new",
+            conversation_id=conversation_id,
             sources=evaluation["sources"],
             confidence=evaluation["confidence"]
         )
@@ -110,11 +132,17 @@ async def chat(request: ChatRequest):
         print(f"❌ Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/conversation/{conversation_id}")
+async def clear_conversation(conversation_id: str):
+    """Clear a specific conversation history"""
+    memory.clear_conversation(conversation_id)
+    return {"message": f"Conversation {conversation_id} cleared"}
+
 @app.get("/")
 async def root():
     return {
-        "message": "BA Chatbot API - Agentic Framework",
-        "version": "2.0.0",
+        "message": "BA Chatbot API - Agentic Framework with Memory",
+        "version": "2.1.0",
         "docs": "/docs"
     }
 

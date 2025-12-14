@@ -10,6 +10,7 @@ function App() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const API_URL = 'http://localhost:8000';
@@ -31,12 +32,18 @@ function App() {
       const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input })
+        body: JSON.stringify({ 
+          message: input,
+          conversation_id: conversationId 
+        })
       });
 
       if (!response.ok) throw new Error('Failed to get response');
 
       const data = await response.json();
+      
+      // Save conversation ID for future messages
+      setConversationId(data.conversation_id);
       
       setMessages(prev => [...prev, {
         role: 'assistant',

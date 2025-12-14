@@ -3,7 +3,7 @@ from typing import List, Dict
 import ollama
 
 class ReasonerAgent:
-    """Generates responses based on retrieved context"""
+    """Generates responses based on retrieved context and conversation history"""
     
     def __init__(self, model="llama3.2:1b"):
         self.model = model
@@ -12,15 +12,16 @@ class ReasonerAgent:
         self, 
         query: str, 
         context: List[Dict], 
-        plan: Dict
+        plan: Dict,
+        conversation_context: str = ""
     ) -> Dict:
-        """Generate response using LLM with context"""
+        """Generate response using LLM with context and conversation history"""
         
         # Build context string from retrieved documents
         context_text = self._build_context(context)
         
-        # Create prompt
-        prompt = self._create_prompt(query, context_text, plan)
+        # Create prompt with conversation history
+        prompt = self._create_prompt(query, context_text, plan, conversation_context)
         
         try:
             # Call LLM
@@ -58,24 +59,26 @@ class ReasonerAgent:
         
         return "\n\n".join(context_parts)
     
-    def _create_prompt(self, query: str, context: str, plan: Dict) -> str:
-        """Create the prompt for the LLM"""
+    def _create_prompt(self, query: str, context: str, plan: Dict, conversation_context: str) -> str:
+        """Create the prompt for the LLM with conversation history"""
+        
+        history_section = ""
+        if conversation_context:
+            history_section = f"\n{conversation_context}\n"
         
         return f"""You are a helpful British Airways customer service assistant. 
 
-Your task is to answer the customer's question using ONLY the information provided in the context below. Be accurate, professional, and friendly.
-
-Important guidelines:
-- Use ONLY information from the provided context
-- If the context doesn't contain the answer, say so politely
-- Be specific and cite relevant policies
-- Keep responses concise but complete
-- Use a warm, helpful tone
-- Don't make up information
-
+CRITICAL RULES:
+- Use ONLY information from the context below
+- DO NOT invent phone numbers, URLs, or any information not in the context
+- If information is not in the context, say "I don't have that specific information"
+- DO NOT make assumptions or add extra details
+- Be accurate, professional, and friendly
+- Remember the conversation history to provide contextual answers
+{history_section}
 Context (BA Policies):
 {context}
 
 Customer Question: {query}
 
-Please provide a helpful, accurate answer based on the context above."""
+Provide a helpful answer using ONLY the information above. Do not add contact numbers or information not provided."""
