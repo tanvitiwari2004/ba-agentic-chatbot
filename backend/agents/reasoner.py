@@ -24,13 +24,18 @@ class ReasonerAgent:
         prompt = self._create_prompt(query, context_text, plan, conversation_context)
         
         try:
-            # Call LLM
+            # Call LLM with temperature to reduce repetition
             response = ollama.chat(
                 model=self.model,
                 messages=[{
                     'role': 'user',
                     'content': prompt
-                }]
+                }],
+                options={
+                    'temperature': 0.7,  # Lower = more focused, less repetitive
+                    'top_p': 0.9,
+                    'repeat_penalty': 1.2  # Penalize repetition
+                }
             )
             
             return {
