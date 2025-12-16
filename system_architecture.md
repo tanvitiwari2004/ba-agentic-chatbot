@@ -6,6 +6,7 @@ This document outlines the technical architecture of the British Airways Agentic
 ## High-Level Architecture
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'arial'}}}%%
 graph TD
     %% Styling
     classDef frontend fill:#E1F5FE,stroke:#01579B,stroke-width:2px;
