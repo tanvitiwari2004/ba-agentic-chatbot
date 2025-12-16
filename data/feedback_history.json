@@ -26,5 +26,12 @@
     "reason": "Slow Response",
     "query": "but it is a medical condition",
     "response": "If you have a medical condition that requires the use of a portable oxygen concentrator, you will need to obtain medical clearance before you fly. Medical forms should be submitted a minimum of 7 days prior to your departure. You are allowed to carry your portable oxygen concentrator in the cabin, as long as it is approved by the relevant authorities and you have sufficient battery supply for at least 150% of your travel time. However, please note that the use of oxygen cylinders is restricted and must also be pre-approved.\n\nIs there anything else I can help you with regarding your journey?"
+  },
+  {
+    "timestamp": "2025-12-16T08:47:01.651809",
+    "satisfied": false,
+    "reason": "Slow Response",
+    "query": "can  i bring a 500ml perfume",
+    "response": "You can bring a 500ml perfume in your checked baggage, as the maximum volume per individual item allowed in checked baggage is 500ml. However, if you wish to carry it in your hand baggage, it must be in a container measuring no more than 100ml and placed in a single, transparent, re-sealable plastic bag with a total capacity of up to 1 litre. \n\nIs there anything else I can help you with regarding your journey?"
   }
 ]
