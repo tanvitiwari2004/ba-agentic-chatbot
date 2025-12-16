@@ -1,12 +1,14 @@
-# backend/agents/reasoner.py
+import os
+from openai import OpenAI
 from typing import List, Dict
-import ollama
 
 class ReasonerAgent:
     """Generates responses based on retrieved context and conversation history"""
     
-    def __init__(self, model="llama3.2:1b"):
+    def __init__(self, model="gpt-4o-mini"):
         self.model = model
+        api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=api_key)
     
     async def generate_response(
         self, 
@@ -24,22 +26,19 @@ class ReasonerAgent:
         prompt = self._create_prompt(query, context_text, plan, conversation_context)
         
         try:
-            # Call LLM with temperature to reduce repetition
-            response = ollama.chat(
+            # Call OpenAI API
+            response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{
-                    'role': 'user',
-                    'content': prompt
-                }],
-                options={
-                    'temperature': 0.7,  # Lower = more focused, less repetitive
-                    'top_p': 0.9,
-                    'repeat_penalty': 1.2  # Penalize repetition
-                }
+                messages=[
+                    {"role": "system", "content": "You are a helpful British Airways customer service assistant. Use the provided context to answer questions accurately."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=500
             )
             
             return {
-                "text": response["message"]["content"],
+                "text": response.choices[0].message.content,
                 "raw_context": context,
                 "model_used": self.model
             }
@@ -71,25 +70,21 @@ class ReasonerAgent:
         if conversation_context:
             history_section = f"\n{conversation_context}\n"
         
-        return f"""You are a helpful British Airways customer service assistant.
+        return f"""You are a helpful British Airways customer service assistant. 
 
-CRITICAL INSTRUCTIONS:
-1. Give SPECIFIC, DETAILED answers - not generic ones
-2. If the customer asks about a specific item (like "water bottle"), answer ONLY about that item
-3. Quote exact rules, sizes, and requirements from the context
-4. If multiple rules apply, explain each one clearly
-5. DO NOT give general answers when specific ones are available
-6. Use ONLY information from the context below
-7. DO NOT invent phone numbers, URLs, or any information not in the context
-8. If information is not in the context, say "I don't have that specific information"
+CRITICAL RULES:
+- Use ONLY information from the context below
+- DO NOT invent phone numbers, URLs, or any information not in the context
+- If information is not in the context, say "I don't have that specific information"
+- DO NOT make assumptions or add extra details
+- Be accurate, professional, and friendly
+- Remember the conversation history to provide contextual answers
+- ALWAYS end your response by politely asking if there is anything else you can assist with (e.g., "Is there anything else I can help you with regarding your journey?")
 
-EXAMPLE OF GOOD vs BAD:
-❌ BAD: "Liquids must be in containers of 100ml or less"
-✅ GOOD: "Water bottles are allowed in hand baggage if they contain 100ml or less and are placed in a transparent, resealable plastic bag. You can bring an empty water bottle and fill it after security."
 {history_section}
 Context (BA Policies):
 {context}
 
 Customer Question: {query}
 
-Provide a SPECIFIC, DETAILED answer about exactly what the customer asked. Be precise and helpful."""
+Provide a helpful answer using ONLY the information above. Do not add contact numbers or information not provided. Ensure you end with a polite offer of further assistance."""

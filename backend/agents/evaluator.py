@@ -1,12 +1,15 @@
-# backend/agents/evaluator.py
+import os
+from openai import OpenAI
+import json
 from typing import Dict, List
-import ollama
 
 class EvaluatorAgent:
-    """Evaluates response quality and accuracy"""
+    """Evaluates response quality and accuracy using LLM verification"""
     
-    def __init__(self, model="llama3.2:1b"):
+    def __init__(self, model="gpt-4o-mini"):
         self.model = model
+        api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=api_key)
     
     async def evaluate(
         self, 
@@ -41,32 +44,51 @@ class EvaluatorAgent:
         }
     
     def _calculate_confidence(self, response: Dict, sources: List[Dict]) -> float:
-        """Calculate confidence score based on various factors"""
+        """Calculate confidence score using LLM verification"""
         
-        confidence = 0.5  # Base confidence
-        
-        # Boost confidence if we have sources
-        if sources and len(sources) > 0:
-            confidence += 0.2
-            
-            # Higher confidence with more sources
-            if len(sources) >= 3:
-                confidence += 0.1
-            
-            # Boost based on source scores
-            avg_source_score = sum(s.get("score", 0.5) for s in sources) / len(sources)
-            confidence += (avg_source_score * 0.2)
-        
-        # Check response quality
         response_text = response.get("text", "")
-        if len(response_text) > 50:  # Reasonable length
-            confidence += 0.05
+        # Format sources for the LLM
+        context_text = "\n\n".join([f"Source: {s.get('content', '')}" for s in sources])
         
-        if "I don't know" in response_text or "I apologize" in response_text:
-            confidence -= 0.2
+        prompt = f"""
+        You are a strict fact-checker for a British Airways customer support bot.
         
-        # Cap confidence between 0 and 1
-        return max(0.0, min(1.0, confidence))
+        Context provided to the bot:
+        {context_text}
+        
+        Bot's Response:
+        {response_text}
+        
+        Task:
+        1. Verify if the Bot's Response is FULLY supported by the Context.
+        2. Identify any hallucinations or information not in the context.
+        3. Rate confidence from 0.0 to 1.0 (1.0 = fully supported, 0.0 = completely unsupported or hallucinated).
+        
+        Output JSON only:
+        {{
+            "supported": boolean,
+            "confidence_score": float,
+            "reasoning": "string"
+        }}
+        """
+        
+        try:
+            evaluation = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are an evaluator. Output only JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.0
+            )
+            
+            result = json.loads(evaluation.choices[0].message.content)
+            return float(result.get("confidence_score", 0.5))
+            
+        except Exception as e:
+            print(f"Evaluation failed: {e}")
+            return 0.5 # Fallback
     
     def _format_sources(self, sources: List[Dict]) -> List[Dict]:
         """Format sources for output"""
