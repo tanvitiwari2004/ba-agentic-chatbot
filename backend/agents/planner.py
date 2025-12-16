@@ -29,7 +29,7 @@ class PlannerAgent:
         query_lower = query.lower()
         
         categories = {
-            "liquids": ["liquid", "water", "bottle", "gel", "cream", "shampoo", "100ml"],
+            "liquids": ["liquid", "water", "bottle", "gel", "cream", "shampoo", "100ml", "beverage", "drink"],
             "baggage": ["bag", "luggage", "suitcase", "carry-on", "checked", "allowance", "weight"],
             "medical": ["medicine", "medical", "wheelchair", "oxygen", "pregnant", "disability", "prescription"],
             "sports": ["bike", "golf", "ski", "surfboard", "diving", "equipment", "bicycle"],
@@ -47,7 +47,18 @@ class PlannerAgent:
     def _extract_keywords(self, query: str) -> List[str]:
         """Extract important keywords from query"""
         # Remove common words
-        stop_words = {"can", "i", "my", "the", "a", "an", "is", "are", "what", "how", "do", "does"}
+        stop_words = {"can", "i", "my", "the", "a", "an", "is", "are", "what", "how", "do", "does",
+                     "about", "bring", "carry", "take", "allowed", "permit", "on", "in"}
+        
+        # Split and clean
         words = query.lower().split()
-        keywords = [w for w in words if w not in stop_words and len(w) > 2]
-        return keywords[:5]  # Top 5 keywords
+        keywords = []
+        
+        for w in words:
+            # Remove punctuation
+            w = w.strip('?.,!;:')
+            # Keep if not stop word and longer than 2 chars
+            if w not in stop_words and len(w) > 2:
+                keywords.append(w)
+        
+        return keywords[:7]  # Top 7 keywords

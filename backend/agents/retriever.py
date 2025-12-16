@@ -7,14 +7,16 @@ class RetrieverAgent:
     def __init__(self, vector_store=None):
         self.vector_store = vector_store
     
-    async def retrieve(self, query: str, plan: Dict, top_k: int = 5) -> List[Dict]:
+    async def retrieve(self, query: str, plan: Dict, top_k: int = 8) -> List[Dict]:
         """Retrieve relevant documents based on query and plan"""
         
         # If vector store exists, use it
         if self.vector_store:
             try:
+                # Expand query with keywords for better matching
+                expanded_query = f"{query} {' '.join(plan.get('keywords', []))}"
                 results = self.vector_store.search(
-                    query=query,
+                    query=expanded_query,
                     query_type=plan["query_type"],
                     top_k=top_k
                 )
