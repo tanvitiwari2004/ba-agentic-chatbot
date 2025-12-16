@@ -6,42 +6,31 @@ This document outlines the technical architecture of the British Airways Agentic
 ## High-Level Architecture
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'arial'}}}%%
-graph LR
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'arial', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f4f4f4'}}}%%
+graph TD
     %% Styling
-    classDef client fill:#E1F5FE,stroke:#01579B,stroke-width:2px;
-    classDef logic fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
-    classDef memory fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px;
-    classDef ai fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px;
+    classDef main fill:#fff,stroke:#00295A,stroke-width:2px,rx:10,ry:10;
+    classDef agent fill:#EDF2F7,stroke:#00295A,stroke-width:2px,rx:5,ry:5;
+    classDef db fill:#ebebff,stroke:#555,stroke-width:2px;
 
-    User([Customer]) --> UI[Frontend]
+    User([Customer]) -->|1. Asks Question| UI[Frontend Interface]
+    UI -->|2. POST /chat| API[Backend Orchestrator]
+
+    subgraph "Agentic Workflow (Linear Chain)"
+        direction TB
+        API -->|3. Analyze| Plan[1. Planner Agent]
+        Plan -->|4. Search Plan| Ret[2. Retriever Agent]
+        Ret <-->|5. Semantic Search| VDB[(Vector Database)]
+        Ret -->|6. Retrieved Facts| Reas[3. Reasoner Agent]
+        Reas -->|7. Generate Draft| Eval[4. Evaluator Agent]
+    end
+
+    Eval -->|8. Verified Final Answer| API
+    API -->|9. Response| UI
     
-    subgraph App [Application Container]
-        UI -->|API| BE[Backend API]
-        
-        subgraph Agents [Agentic Core]
-            direction TB
-            BE --> Plan[Planner]
-            Plan --> Ret[Retriever]
-            Ret --> Reas[Reasoner]
-            Reas --> Eval[Evaluator]
-            Eval -->|Final Answer| BE
-        end
-    end
-
-    subgraph Knowledge [Data & AI]
-        Vec[(Vector DB)]
-        LLM{{OpenAI GPT-4o}}
-        
-        Ret <-->|Search| Vec
-        Vec -.->|Embed| LLM
-        Agents -.->|Inference| LLM
-    end
-
-    class User,UI client;
-    class BE,Plan,Ret,Reas,Eval logic;
-    class Vec,Hist memory;
-    class LLM ai;
+    class User,UI,API main;
+    class Plan,Ret,Reas,Eval agent;
+    class VDB db;
 ```
 
 ## Component Details
