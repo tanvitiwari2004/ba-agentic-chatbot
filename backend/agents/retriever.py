@@ -16,9 +16,9 @@ class RetrieverAgent:
                 # Expand query with keywords for better matching
                 expanded_query = f"{query} {' '.join(plan.get('keywords', []))}"
                 results = self.vector_store.search(
-                    query=expanded_query,
-                    query_type=plan["query_type"],
-                    top_k=top_k
+                    query=query,
+                    query_type="general", # Disable strict filtering for better recall
+                    top_k=10 # Increase context window
                 )
                 
                 return [

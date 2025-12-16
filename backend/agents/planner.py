@@ -1,64 +1,57 @@
-# backend/agents/planner.py
-from typing import Dict, List
-import ollama
+import os
+from openai import OpenAI
+import json
+from typing import Dict
 
 class PlannerAgent:
-    """Plans the retrieval and reasoning strategy"""
     
-    def __init__(self, model="llama3.2:1b"):
+    def __init__(self, model="gpt-4o-mini"):
         self.model = model
+        api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=api_key)
     
     async def create_plan(self, query: str) -> Dict:
         """Analyze query and create a retrieval plan"""
         
-        # Classify the query type
-        query_type = self._classify_query(query)
+        prompt = f"""
+        Analyze the following user query for a British Airways chatbot.
+        Query: "{query}"
         
-        # Extract keywords
-        keywords = self._extract_keywords(query)
+        Determine:
+        1. The primary category (liquids, baggage, medical, sports, prohibited, electronics, food, or general).
+        2. Relevant search keywords/phrases to find in the policy documents.
+        3. The user's underlying intent (informational, specific-restriction, allowance-check).
         
-        return {
-            "query_type": query_type,
-            "keywords": keywords,
-            "priority": "high",
-            "depth": "detailed"
-        }
-    
-    def _classify_query(self, query: str) -> str:
-        """Classify query into categories"""
-        query_lower = query.lower()
+        Output JSON only:
+        {{
+            "query_type": "string",
+            "keywords": ["string", "string"],
+            "intent": "string",
+            "priority": "high/medium/low",
+            "search_queries": ["string"]
+        }}
+        """
         
-        categories = {
-            "liquids": ["liquid", "water", "bottle", "gel", "cream", "shampoo", "100ml", "beverage", "drink"],
-            "baggage": ["bag", "luggage", "suitcase", "carry-on", "checked", "allowance", "weight"],
-            "medical": ["medicine", "medical", "wheelchair", "oxygen", "pregnant", "disability", "prescription"],
-            "sports": ["bike", "golf", "ski", "surfboard", "diving", "equipment", "bicycle"],
-            "prohibited": ["prohibited", "forbidden", "not allowed", "banned", "restricted", "dangerous"],
-            "electronics": ["battery", "laptop", "phone", "charger", "power bank", "lithium"],
-            "food": ["food", "snack", "meal", "eat", "drink", "infant", "baby"]
-        }
-        
-        for category, terms in categories.items():
-            if any(term in query_lower for term in terms):
-                return category
-        
-        return "general"
-    
-    def _extract_keywords(self, query: str) -> List[str]:
-        """Extract important keywords from query"""
-        # Remove common words
-        stop_words = {"can", "i", "my", "the", "a", "an", "is", "are", "what", "how", "do", "does",
-                     "about", "bring", "carry", "take", "allowed", "permit", "on", "in"}
-        
-        # Split and clean
-        words = query.lower().split()
-        keywords = []
-        
-        for w in words:
-            # Remove punctuation
-            w = w.strip('?.,!;:')
-            # Keep if not stop word and longer than 2 chars
-            if w not in stop_words and len(w) > 2:
-                keywords.append(w)
-        
-        return keywords[:7]  # Top 7 keywords
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a strategic planner for a search agent. Output JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.0
+            )
+            
+            plan = json.loads(response.choices[0].message.content)
+            return plan
+            
+        except Exception as e:
+            print(f"Planning failed: {e}")
+            # Fallback to simple keyword extraction
+            return {
+                "query_type": "general",
+                "keywords": query.split(),
+                "priority": "medium",
+                "search_queries": [query]
+            }

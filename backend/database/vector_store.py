@@ -1,7 +1,7 @@
 # backend/database/vector_store.py
 import chromadb
 from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 import os
 from typing import List, Dict
 
@@ -10,21 +10,42 @@ class VectorStore:
     
     def __init__(self, persist_dir="./chroma_db"):
         try:
+            from dotenv import load_dotenv
+            load_dotenv()
+            
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                print("⚠️ OPENAI_API_KEY not found in environment variables")
+                self.initialized = False
+                return
+
             self.client = chromadb.PersistentClient(path=persist_dir)
+            self.openai_client = OpenAI(api_key=api_key)
             
             self.collection = self.client.get_or_create_collection(
                 name="ba_policies",
                 metadata={"hnsw:space": "cosine"}
             )
             
-            self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
             self.initialized = True
-            print("✅ Vector store initialized successfully")
+            print("✅ Vector store initialized successfully (OpenAI Embeddings)")
             
         except Exception as e:
             print(f"⚠️ Vector store initialization failed: {e}")
             self.initialized = False
     
+    def get_embedding(self, text: str) -> List[float]:
+        """Generate embedding using OpenAI"""
+        try:
+            response = self.openai_client.embeddings.create(
+                input=text,
+                model="text-embedding-3-small"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            print(f"❌ Error generating embedding: {e}")
+            return []
+
     def load_documents(self, file_path: str):
         """Load BA policies from text file"""
         if not self.initialized:
@@ -32,6 +53,11 @@ class VectorStore:
             return
         
         try:
+            # Check if documents already exist
+            if self.collection.count() > 0:
+                print(f"✅ Vector store already populated ({self.collection.count()} documents). Skipping load.")
+                return
+
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
@@ -41,21 +67,35 @@ class VectorStore:
             print(f"📄 Loading {len(sections)} sections into vector store...")
             
             # Add to vector store
+            ids = []
+            embeddings = []
+            documents = []
+            metadatas = []
+            
+            # Batch process for efficiency (if needed, but simple loop assumes small doc count)
             for i, section in enumerate(sections):
-                embedding = self.encoder.encode(section["text"]).tolist()
+                embedding = self.get_embedding(section["text"])
+                if not embedding:
+                    continue
+                    
+                ids.append(f"doc_{i}")
+                embeddings.append(embedding)
+                documents.append(section["text"])
+                metadatas.append({
+                    "source": "ba_liquids_and_restrictions.txt",
+                    "section": section["title"],
+                    "category": section["category"]
+                })
                 
+            if ids:
                 self.collection.add(
-                    ids=[f"doc_{i}"],
-                    embeddings=[embedding],
-                    documents=[section["text"]],
-                    metadatas=[{
-                        "source": "ba_liquids_and_restrictions.txt",
-                        "section": section["title"],
-                        "category": section["category"]
-                    }]
+                    ids=ids,
+                    embeddings=embeddings,
+                    documents=documents,
+                    metadatas=metadatas
                 )
             
-            print(f"✅ Successfully loaded {len(sections)} sections")
+            print(f"✅ Successfully loaded {len(ids)} sections")
             
         except Exception as e:
             print(f"❌ Error loading documents: {e}")
@@ -66,7 +106,9 @@ class VectorStore:
             return []
         
         try:
-            query_embedding = self.encoder.encode(query).tolist()
+            query_embedding = self.get_embedding(query)
+            if not query_embedding:
+                return []
             
             # Search with optional category filter
             if query_type != "general":

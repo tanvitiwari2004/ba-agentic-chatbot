@@ -138,6 +138,51 @@ async def clear_conversation(conversation_id: str):
     memory.clear_conversation(conversation_id)
     return {"message": f"Conversation {conversation_id} cleared"}
 
+class FeedbackRequest(BaseModel):
+    satisfied: bool
+    reason: Optional[str] = None
+    query: Optional[str] = None
+    response: Optional[str] = None
+
+@app.post("/feedback")
+async def submit_feedback(feedback: FeedbackRequest):
+    """Store user feedback for future model improvements (Offline Learning)"""
+    import json
+    from datetime import datetime
+    
+    feedback_file = "../data/feedback_history.json"
+    
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "satisfied": feedback.satisfied,
+        "reason": feedback.reason,
+        "query": feedback.query,
+        "response": feedback.response
+    }
+    
+    try:
+        # Append to feedback log
+        history = []
+        if os.path.exists(feedback_file):
+            with open(feedback_file, "r") as f:
+                try:
+                    history = json.load(f)
+                except json.JSONDecodeError:
+                    history = []
+        
+        history.append(entry)
+        
+        # Write back to file
+        with open(feedback_file, "w") as f:
+            json.dump(history, f, indent=2)
+            
+        print(f"📝 Feedback stored: Satisfied={feedback.satisfied}, Reason={feedback.reason}")
+        return {"status": "success", "message": "Feedback recorded for learning"}
+        
+    except Exception as e:
+        print(f"❌ Error saving feedback: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save feedback")
+
 @app.get("/")
 async def root():
     return {

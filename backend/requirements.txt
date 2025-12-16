@@ -1,0 +1,10 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+openai==1.12.0
+chromadb==0.4.22
+python-dotenv==1.0.1
+tiktoken==0.6.0
+pydantic==2.6.1
+numpy<2.0.0
+httpx<0.28.0
+posthog<3.0.0

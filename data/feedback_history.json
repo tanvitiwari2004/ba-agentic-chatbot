@@ -1,0 +1,37 @@
+[
+  {
+    "timestamp": "2025-12-16T08:09:14.716001",
+    "satisfied": true,
+    "reason": null,
+    "query": "Liquid restrictions for hand luggage",
+    "response": "When travelling with British Airways, there are specific restrictions regarding liquids in your hand luggage:\n\n1. Each liquid must be in its own container, measuring no more than 100ml (3.4oz).\n2. All liquids must be placed in a single, transparent, re-sealable plastic bag, which must not exceed dimensions of 20 x 20cm (8 x 8in) with a total capacity of up to 1 litre (approximately 1 quart).\n3. You must be able to completely close the bag and fit it in your hand baggage.\n4. You may need to take the bag of liquids out of your hand baggage to be screened separately at security.\n5. Aerosols can be carried in cabin bags but cannot be used on board due to the enclosed space.\n6. For flights outside the UK and EU, it's advisable to check the current safety and security requirements of your destination country.\n\nAdditionally, you are allowed to carry essential medication in your hand baggage, which may exceed the standard liquid limits if you have a prescription. This medication should be in its original packaging.\n\nIs there anything else I can help you with regarding your journey?"
+  },
+  {
+    "timestamp": "2025-12-16T08:22:26.298456",
+    "satisfied": false,
+    "reason": "Slow Response",
+    "query": "Special assistance requests",
+    "response": "If you require special assistance while travelling with British Airways, you can inform us about your needs by logging into your booking and selecting the 'Disability and Assistance' option in the \u2018Service Requests\u2019 section. This will allow us to better accommodate your requirements during your journey.\n\nFor passengers needing to travel with a wheelchair, mobility scooter, or other mobility aids, it\u2019s important to notify us in advance, especially if your device is battery-operated. We will need specific details about your mobility aid, including its type, dimensions, weight, and battery information to ensure safe transport.\n\nAdditionally, if you're travelling with medical equipment or supplies, you may check in additional bags containing these items free of charge, subject to authorisation.\n\nIs there anything else I can help you with regarding your journey?"
+  },
+  {
+    "timestamp": "2025-12-16T10:16:02.182123",
+    "satisfied": true,
+    "reason": null,
+    "query": "What is the baggage allowance?",
+    "response": "The baggage allowance can vary depending on your fare type and the airline operating your flight. Generally, for British Airways, each person is allowed to carry a specific weight and number of bags, which may differ when traveling on flights operated by partner airlines.\n\nIf you're traveling on an Economy Basic fare, please note that it has no hold baggage allowance, and you may need to pay for any checked bags. You can also take sports equipment as part of your checked baggage allowance or as an extra checked bag, depending on size and weight. \n\nIf you have specific details about your booking, I can provide more tailored information. Is there anything else I can help you with regarding your journey?"
+  },
+  {
+    "timestamp": "2025-12-16T10:23:39.013011",
+    "satisfied": false,
+    "reason": "Slow Response",
+    "query": "but it is a medical condition",
+    "response": "If you have a medical condition that requires the use of a portable oxygen concentrator, you will need to obtain medical clearance before you fly. Medical forms should be submitted a minimum of 7 days prior to your departure. You are allowed to carry your portable oxygen concentrator in the cabin, as long as it is approved by the relevant authorities and you have sufficient battery supply for at least 150% of your travel time. However, please note that the use of oxygen cylinders is restricted and must also be pre-approved.\n\nIs there anything else I can help you with regarding your journey?"
+  },
+  {
+    "timestamp": "2025-12-16T08:47:01.651809",
+    "satisfied": false,
+    "reason": "Slow Response",
+    "query": "can  i bring a 500ml perfume",
+    "response": "You can bring a 500ml perfume in your checked baggage, as the maximum volume per individual item allowed in checked baggage is 500ml. However, if you wish to carry it in your hand baggage, it must be in a container measuring no more than 100ml and placed in a single, transparent, re-sealable plastic bag with a total capacity of up to 1 litre. \n\nIs there anything else I can help you with regarding your journey?"
+  }
+]
