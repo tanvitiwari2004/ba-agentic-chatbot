@@ -7,48 +7,41 @@ This document outlines the technical architecture of the British Airways Agentic
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'arial'}}}%%
-graph TD
+graph LR
     %% Styling
-    classDef frontend fill:#E1F5FE,stroke:#01579B,stroke-width:2px;
-    classDef backend fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
-    classDef external fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px;
-    classDef storage fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px;
+    classDef client fill:#E1F5FE,stroke:#01579B,stroke-width:2px;
+    classDef logic fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
+    classDef memory fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px;
+    classDef ai fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px;
 
-    %% User Interaction
-    User([Customer]) -->|HTTPS| Frontend[React Frontend];
+    User([Customer]) --> UI[Frontend]
     
-    %% Frontend
-    subgraph Client Application
-        Frontend -->|REST API /chat| API[FastAPI Backend];
-        Frontend -->|REST API /feedback| API;
-    end
-
-    %% Backend Agents
-    subgraph Agentic Core
-        API -->|Orchestrates| Memory[Conversation Memory];
-        API -->|Step 1| Planner[Planner Agent];
-        API -->|Step 2| Retriever[Retriever Agent];
-        API -->|Step 3| Reasoner[Reasoner Agent];
-        API -->|Step 4| Evaluator[Evaluator Agent];
+    subgraph App [Application Container]
+        UI -->|API| BE[Backend API]
         
-        Planner -->|Analyze Intent| OpenAI[OpenAI GPT-4o];
-        Reasoner -->|Generate Answer| OpenAI;
-        Evaluator -->|Verify Factuality| OpenAI;
+        subgraph Agents [Agentic Core]
+            direction TB
+            BE --> Plan[Planner]
+            Plan --> Ret[Retriever]
+            Ret --> Reas[Reasoner]
+            Reas --> Eval[Evaluator]
+            Eval -->|Final Answer| BE
+        end
     end
 
-    %% Data Layer
-    subgraph Data & Storage
-        Retriever -->|Semantic Search| VectorStore[(ChromaDB)];
-        VectorStore -->|Embeddings| OpenAI;
-        API -->|Persist Feedback| FeedbackLog[feedback_history.json];
-        Memory -->|Store History| InMemory[In-Memory Session];
+    subgraph Knowledge [Data & AI]
+        Vec[(Vector DB)]
+        LLM{{OpenAI GPT-4o}}
+        
+        Ret <-->|Search| Vec
+        Vec -.->|Embed| LLM
+        Agents -.->|Inference| LLM
     end
 
-    %% Class Assignment
-    class Frontend frontend;
-    class API,Planner,Retriever,Reasoner,Evaluator backend;
-    class OpenAI external;
-    class VectorStore,FeedbackLog,Memory,InMemory storage;
+    class User,UI client;
+    class BE,Plan,Ret,Reas,Eval logic;
+    class Vec,Hist memory;
+    class LLM ai;
 ```
 
 ## Component Details
